@@ -50,7 +50,7 @@ func main() {
 
 	//Search for the domain
 	var createRecord bool
-	zones, err := api.DNSRecords(id, cloudflare.DNSRecord{Name: args[2] + "." + args[3], Type: "A"})
+	zones, err := api.DNSRecords(id, cloudflare.DNSRecord{Name: args[3] + "." + args[2], Type: "A"})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -59,7 +59,10 @@ func main() {
 		//Delete subdomain?
 	} else if len(zones) == 1 {
 		//Subdomain exist!
-
+		if zones[0].Content == publicIP {
+			//The IP is the same, no need to edit
+			return
+		}
 	} else {
 		//Subdomain dosn't exist
 		createRecord = true
@@ -68,7 +71,7 @@ func main() {
 	var record cloudflare.DNSRecord
 	if createRecord {
 		record.Proxied = false
-		record.Name = args[2]
+		record.Name = args[3]
 		record.Type = "A"
 		record.Content = publicIP
 		record.Locked = false
@@ -80,7 +83,7 @@ func main() {
 	} else {
 		record = zones[0]
 		record.Content = publicIP
-		record.Name = args[2]
+		record.Name = args[3]
 		err = api.UpdateDNSRecord(id, record.ID, record)
 	}
 
