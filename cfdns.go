@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"os"
 	"regexp"
+        "context"
 
 	"github.com/cloudflare/cloudflare-go"
 )
@@ -50,7 +51,7 @@ func main() {
 
 	//Search for the domain
 	var createRecord bool
-	zones, err := api.DNSRecords(id, cloudflare.DNSRecord{Name: args[3] + "." + args[2], Type: "A"})
+	zones, err := api.DNSRecords(context.TODO(), id, cloudflare.DNSRecord{Name: args[3] + "." + args[2], Type: "A"})
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -70,13 +71,14 @@ func main() {
 
 	var record cloudflare.DNSRecord
 	if createRecord {
-		record.Proxied = false
+                f := false
+		record.Proxied = &f
 		record.Name = args[3]
 		record.Type = "A"
 		record.Content = publicIP
 		record.Locked = false
 		record.Proxiable = true
-		_, err = api.CreateDNSRecord(id, record)
+		_, err = api.CreateDNSRecord(context.TODO(), id, record)
 		if err != nil {
 			log.Fatal(err)
 		}
@@ -84,7 +86,7 @@ func main() {
 		record = zones[0]
 		record.Content = publicIP
 		record.Name = args[3]
-		err = api.UpdateDNSRecord(id, record.ID, record)
+		err = api.UpdateDNSRecord(context.TODO(), id, record.ID, record)
 	}
 
 }
